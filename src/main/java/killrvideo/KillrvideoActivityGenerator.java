@@ -137,7 +137,7 @@ public class KillrvideoActivityGenerator {
 			
 			long timeSpent = (System.nanoTime() - oneSecondStart) / 1000000;
 			
-			if (timeSpent > 0) {
+			if ((ONE_SECOND - timeSpent) > 0) {
 				try {
 					Thread.sleep(ONE_SECOND - timeSpent);
 				} catch (InterruptedException e) {
@@ -228,22 +228,7 @@ public class KillrvideoActivityGenerator {
 		Video video = getRandomVideo();
 		int intRating = random.nextInt(5) + 1;
 
-		// get current rating
-		List<UUID> videoid = new ArrayList<>();
-		videoid.add(video.getVideoid());
-		List<VideoRating> currentResult = videoRatingRep.findAllById(videoid);
-
-		VideoRating newRating = new VideoRating();
-		newRating.setVideoid(video.getVideoid());
-		if (currentResult.isEmpty()) {
-			newRating.setRatingTotal(intRating);
-			newRating.setRatingCounter(1);
-		} else {
-			VideoRating current = currentResult.getFirst();
-			newRating.setRatingTotal(current.getRatingTotal() + intRating);
-			newRating.setRatingCounter(current.getRatingCounter() + 1);
-		}
-		videoRatingRep.save(newRating);
+		videoRatingRep.updateRating(1L, intRating, video.getVideoid());
 		
 		// rating by user
 		VideoRatingByUser ratingByUser = new VideoRatingByUser();
@@ -254,36 +239,24 @@ public class KillrvideoActivityGenerator {
 		ratingByUser.setRating(intRating);
 		videoRatingBUsrRep.save(ratingByUser);
 		
-		System.out.printf("rating for video %s added from user %s!\n", newRating.getVideoid(), user.getUserid());
+		System.out.printf("rating for video %s added from user %s!\n", video.getVideoid(), user.getUserid());
 	}
 	
 	private static void addSampleVideoView() {
 
 		Video video = getRandomVideo();
 		
-		// get current stats
-		List<UUID> videoid = new ArrayList<>();
-		videoid.add(video.getVideoid());
-		List<VideoPlaybackStats> currentResult = videoViewsRep.findAllById(videoid);
+		videoViewsRep.updatePlaybackStats(1L,video.getVideoid());
 		
-		VideoPlaybackStats newView = new VideoPlaybackStats();
-		newView.setVideoid(video.getVideoid());
-		
-		if (currentResult.isEmpty()) {
-			newView.setViews(1);
-		} else {
-			VideoPlaybackStats current = currentResult.getFirst();
-			newView.setViews(current.getViews() + 1);
-		}
-		
-		videoViewsRep.save(newView);
-		
-		System.out.printf("view for video %s added!\n", newView.getVideoid());
+		System.out.printf("view for video %s added!\n", video.getVideoid());
 		
 	}
 	
 	private static void generateLatestVideoList() {
-				
+		
+		// TRUNCATE
+		latestVidRep.deleteAll();
+		
 		Video[] array = new Video[videos.size()];
 		
 		int arrayCounter = 0;
