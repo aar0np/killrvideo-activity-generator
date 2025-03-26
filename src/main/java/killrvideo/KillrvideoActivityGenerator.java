@@ -144,6 +144,14 @@ public class KillrvideoActivityGenerator {
 					e.printStackTrace();
 				}
 			}
+			
+			// slowing it down
+			try {
+				Thread.sleep(ONE_SECOND*5);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+			
 			totalTime++;
 		}
 	}
